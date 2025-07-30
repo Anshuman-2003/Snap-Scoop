@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import cv2
 from PIL import Image
 from rembg import remove
+from pdf2image import convert_from_path
 
 UPLOAD_FOLDER = 'upload'
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'}
@@ -15,26 +16,46 @@ app.secret_key = 'the random string'
 
 def process(filename,oper):
     img = cv2.imread(f"upload/{filename}")
+    filepath = os.path.join("upload", filename)
+    file_ext = filename.lower().split('.')[-1]
     match oper:
         case "greyh":
             new_img = cv2.imread(f"upload/{filename}",0)
             cv2.imwrite(f"static/{filename}",new_img)
             return filename
         case "pngh":
-            new_img = cv2.imread(f"upload/{filename}")
-            new_file = (f"{filename}.").split('.')[0]+".png"
-            cv2.imwrite(f"static/{new_file}",new_img)
-            return new_file
+            if file_ext == "pdf":
+                images = convert_from_path(filepath)
+                output_file = filename.replace('.pdf', '.png')
+                images[0].save(os.path.join("static", output_file), "PNG")
+                return output_file
+            else:
+                new_img = cv2.imread(f"upload/{filename}")
+                new_file = (f"{filename}.").split('.')[0]+".png"
+                cv2.imwrite(f"static/{new_file}",new_img)
+                return new_file
         case "jpegh":
-            new_img = cv2.imread(f"upload/{filename}")
-            new_file = (f"{filename}.").split('.')[0]+".jpeg"
-            cv2.imwrite(f"static/{new_file}",new_img)
-            return new_file
+            if file_ext == "pdf":
+                images = convert_from_path(filepath)
+                output_file = filename.replace('.pdf', '.jpeg')
+                images[0].save(os.path.join("static", output_file), "JPEG")
+                return output_file
+            else:
+                new_img = cv2.imread(f"upload/{filename}")
+                new_file = (f"{filename}.").split('.')[0]+".jpeg"
+                cv2.imwrite(f"static/{new_file}",new_img)
+                return new_file
         case "webph":
-            new_img = cv2.imread(f"upload/{filename}")
-            new_file = (f"{filename}.").split('.')[0]+".webp"
-            cv2.imwrite(f"static/{new_file}",new_img)
-            return new_file
+            if file_ext == "pdf":
+                images = convert_from_path(filepath)
+                output_file = filename.replace('.pdf', '.webp')
+                images[0].save(os.path.join("static", output_file), "WEBP")
+                return output_file
+            else:
+                new_img = cv2.imread(f"upload/{filename}")
+                new_file = (f"{filename}.").split('.')[0]+".webp"
+                cv2.imwrite(f"static/{new_file}",new_img)
+                return new_file
         case "pdfh":
             new_img = Image.open(f"upload/{filename}")
             new_file = new_img.convert('RGB')
